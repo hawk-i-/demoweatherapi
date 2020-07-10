@@ -6,17 +6,22 @@ from dotenv import load_dotenv
 
 load_dotenv()
 app = Flask(__name__)
-def get_wtr(location: str, temp_unit: str = 'fahrenheit'):
-    owm = pyowm.OWM(environ.get('OWM_API_KEY'))
-    wtr = owm.weather_at_place(location).get_weather()
+def get_wtr(location: str, temp_unit: str = 'fahrenheit', wind_unit: str = 'miles_hour'):
+    owm = pyowm.OWM(environ.get('OWM_API_KEY')).weather_manager()
+    wtr = owm.weather_at_place(location).weather
     return {
-        "status": wtr.get_detailed_status(),
-        "wind": wtr.get_wind(),
-        "temp": wtr.get_temperature(temp_unit),
-        "reference_time": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(wtr.get_reference_time())),
-        "sunset": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(wtr.get_sunset_time())),
-        "sunrise": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(wtr.get_sunrise_time()))
-
+        "status": wtr.detailed_status,
+        "wind_speed": wtr.wind(wind_unit).get('speed'),
+        "wind_deg": wtr.wind(wind_unit).get('deg'),
+        "temp": wtr.temperature(temp_unit).get('temp'),
+        "temp_feel": wtr.temperature(temp_unit).get('feels_like'),
+        "temp_max": wtr.temperature(temp_unit).get('temp_max'),
+        "temp_min": wtr.temperature(temp_unit).get('temp_min'),
+        "reference_time": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(wtr.reference_time())),
+        "sunset": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(wtr.sunset_time())),
+        "sunrise": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(wtr.sunrise_time())),
+        "wind_unit": wind_unit,
+        "temp_unit": temp_unit
     }
 
 @app.route('/')
